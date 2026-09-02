@@ -1,0 +1,20 @@
+apiVersion: v2
+name: charger-dashboard
+description: Public EV charge point availability from NDW DOT-NL (served from ghcr.io/jvhaarst/charger_dashboard)
+type: application
+version: 0.1.0
+# Tracks the published ghcr.io/jvhaarst/charger_dashboard image tag.
+# Renovate bumps this automatically when a new image is released.
+appVersion: "0.1.1"
+keywords:
+  - ev
+  - charging
+  - ndw
+  - dashboard
+  - wageningen
+home: https://laadpaal.vanhaarst.net
+sources:
+  - https://github.com/jvhaarst/charger_dashboard
+  - https://github.com/jvhaarst/charger_dashboard_k8s
+maintainers:
+  - name: jvhaarst

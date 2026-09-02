@@ -1,0 +1,19 @@
+{{ .Chart.Name }} {{ .Chart.Version }} — image {{ include "charger-dashboard.image" . }}
+
+{{ if .Values.ingress.enabled -}}
+Dashboard:  http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/
+Health:     http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}/healthz
+{{- else -}}
+No ingress. Reach it with:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "charger-dashboard.fullname" . }} 8000:{{ .Values.service.port }}
+{{- end }}
+
+Bounding box: {{ .Values.config.bbox }}
+
+{{ if .Values.persistence.enabled -}}
+History is on PVC {{ include "charger-dashboard.fullname" . }}-data
+({{ .Values.persistence.size }}, {{ .Values.persistence.storageClass | default "cluster default" }}),
+kept on uninstall. Charts stay empty until the poller has run a few times.
+{{- else -}}
+WARNING: persistence is disabled, so the history dies with the pod.
+{{- end }}

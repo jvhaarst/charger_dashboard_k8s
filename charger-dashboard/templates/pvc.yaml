@@ -1,0 +1,23 @@
+{{- if .Values.persistence.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "charger-dashboard.fullname" . }}-data
+  labels:
+    {{- include "charger-dashboard.labels" . | nindent 4 }}
+  annotations:
+    # Keep the history when the release is uninstalled; it is the one thing here
+    # that cannot be rebuilt from the image.
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  {{- if .Values.persistence.storageClass }}
+  # Set explicitly: the cluster has more than one class marked default, so an
+  # unqualified claim is ambiguous.
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+{{- end }}

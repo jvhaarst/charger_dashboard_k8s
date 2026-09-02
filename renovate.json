@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^charger-dashboard/Chart\\.yaml$"],
+      "matchStrings": [
+        "appVersion:\\s*\"(?<currentValue>v?[\\d.]+)\""
+      ],
+      "depNameTemplate": "ghcr.io/jvhaarst/charger_dashboard",
+      "datasourceTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDepNames": ["ghcr.io/jvhaarst/charger_dashboard"],
+      "groupName": "charger_dashboard image"
+    }
+  ]
+}

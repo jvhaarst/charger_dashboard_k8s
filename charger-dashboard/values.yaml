@@ -1,0 +1,61 @@
+# Default values for charger-dashboard.
+
+image:
+  repository: ghcr.io/jvhaarst/charger_dashboard
+  # Empty = use the chart's appVersion (the single source of truth Renovate bumps).
+  # Set this only to pin/override a specific tag.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# One replica, always. The poller thread and the SQLite writer want a single
+# process, and the history volume is ReadWriteOnce.
+replicaCount: 1
+
+# Everything the app reads from the environment. Empty means "use the image's
+# own default", which is documented in the app's README.
+config:
+  # minLon,minLat,maxLon,maxLat — the Wageningen Business & Science Park.
+  bbox: "5.655835,51.980796,5.670791,51.989109"
+  # Seconds between recorded observations.
+  pollSeconds: 300
+  # Seconds a fetched response counts as fresh.
+  cacheSeconds: 60
+  # Same-operator stations closer than this are shown as one site; 0 disables.
+  mergeMetres: 10
+  # History retention in days; 0 keeps everything.
+  retainDays: 90
+
+# The SQLite history and the response cache live here. Without this the history
+# dies with the pod and every chart on the page stays empty.
+persistence:
+  enabled: true
+  storageClass: longhorn
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+service:
+  port: 80
+
+ingress:
+  enabled: true
+  className: traefik
+  host: laadpaal.vanhaarst.net
+  # cert-manager ClusterIssuer for TLS; empty disables the annotation.
+  clusterIssuer: letsencrypt-production
+  tls: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: "1"
+    memory: 256Mi
+
+podSecurityContext: {}
+securityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podAnnotations: {}
+commonLabels: {}

@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "charger-dashboard.fullname" . }}
+  labels:
+    {{- include "charger-dashboard.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    # Recreate, not RollingUpdate: the history volume is ReadWriteOnce, so a new
+    # pod cannot mount it while the old one holds it, and two processes writing
+    # one SQLite file would be wrong anyway.
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "charger-dashboard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "charger-dashboard.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: {{ include "charger-dashboard.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            {{- with .Values.config.bbox }}
+            - name: NDW_BBOX
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.pollSeconds }}
+            - name: NDW_POLL_SECONDS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.cacheSeconds }}
+            - name: NDW_CACHE_SECONDS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if not (kindIs "invalid" .Values.config.mergeMetres) }}
+            - name: NDW_MERGE_METRES
+              value: {{ .Values.config.mergeMetres | quote }}
+            {{- end }}
+            {{- if not (kindIs "invalid" .Values.config.retainDays) }}
+            - name: NDW_RETAIN_DAYS
+              value: {{ .Values.config.retainDays | quote }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              # /healthz answers 200 whenever Flask is up and reports upstream
+              # trouble in the body, so an NDW outage cannot cause a restart loop.
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "charger-dashboard.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
