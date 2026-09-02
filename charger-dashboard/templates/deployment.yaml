@@ -59,6 +59,10 @@ spec:
             - name: NDW_RETAIN_DAYS
               value: {{ .Values.config.retainDays | quote }}
             {{- end }}
+            {{- if not (kindIs "invalid" .Values.config.ocpiSeconds) }}
+            - name: NDW_OCPI_SECONDS
+              value: {{ .Values.config.ocpiSeconds | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
               # /healthz answers 200 whenever Flask is up and reports upstream

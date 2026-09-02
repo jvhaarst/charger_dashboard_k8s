@@ -24,6 +24,12 @@ config:
   mergeMetres: 10
   # History retention in days; 0 keeps everything.
   retainDays: 90
+  # How often to refresh which sockets are dead (not reporting, out of order)
+  # from NDW's bulk OCPI file. Each refresh downloads ~18MB, so this is
+  # deliberately far slower than the poll above: being dead is a slow-moving
+  # property, while charging is derived from the fast feed. 0 disables it and
+  # the page falls back to plain free/not-free.
+  ocpiSeconds: 3600
 
 # The SQLite history and the response cache live here. Without this the history
 # dies with the pod and every chart on the page stays empty.
