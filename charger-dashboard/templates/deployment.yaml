@@ -65,18 +65,27 @@ spec:
             {{- end }}
           readinessProbe:
             httpGet:
-              # /healthz answers 200 whenever Flask is up and reports upstream
-              # trouble in the body, so an NDW outage cannot cause a restart loop.
+              # Readiness reads the history database, so it fails while the
+              # volume is stalled — dropping out of the Service is the right
+              # response to storage that is genuinely not answering.
               path: /healthz
               port: http
             initialDelaySeconds: 5
             periodSeconds: 15
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
           livenessProbe:
             httpGet:
-              path: /healthz
+              # Liveness must NOT touch the volume. /healthz opens SQLite on it,
+              # and a longhorn rebuild stalled that for up to 10s at a time,
+              # which killed a healthy pod 18 times in four hours. /livez
+              # answers only whether the process is serving.
+              path: /livez
               port: http
             initialDelaySeconds: 20
             periodSeconds: 30
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
           volumeMounts:
             - name: data
               mountPath: /data

@@ -41,6 +41,13 @@ persistence:
   accessMode: ReadWriteOnce
   size: 1Gi
 
+# Generous on purpose. This runs on Raspberry Pi nodes with longhorn storage,
+# where a 4KiB fsync has been measured taking 14 seconds during a replica
+# rebuild. Tight probe budgets turn that into a restart loop.
+probes:
+  timeoutSeconds: 5
+  failureThreshold: 5
+
 service:
   port: 80
 
