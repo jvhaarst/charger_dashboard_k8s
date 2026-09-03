@@ -22,8 +22,10 @@ config:
   cacheSeconds: 60
   # Same-operator stations closer than this are shown as one site; 0 disables.
   mergeMetres: 10
-  # History retention in days; 0 keeps everything.
-  retainDays: 90
+  # History retention in days, both tables; 0 keeps everything. A year of the
+  # four stations in the default bbox is roughly 50MB, so the 1Gi volume below
+  # is not the constraint.
+  retainDays: 365
   # How often to refresh which sockets are dead (not reporting, out of order)
   # from NDW's bulk OCPI file. Each refresh downloads ~18MB, so this is
   # deliberately far slower than the poll above: being dead is a slow-moving

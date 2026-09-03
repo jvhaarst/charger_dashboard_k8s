@@ -56,7 +56,7 @@ helm upgrade --install laadpaal charger-dashboard/charger-dashboard \
 | `config.pollSeconds` | `300` | Seconds between recorded observations. |
 | `config.cacheSeconds` | `60` | Seconds a fetched response counts as fresh. |
 | `config.mergeMetres` | `10` | Same-operator stations closer than this show as one site; `0` disables. |
-| `config.retainDays` | `90` | History retention; `0` keeps everything. |
+| `config.retainDays` | `365` | History retention, both tables; `0` keeps everything. ~50MB per year for the default bbox. |
 | `config.ocpiSeconds` | `3600` | How often to refresh which sockets are *dead*, from NDW's bulk OCPI file (~18MB per refresh). `0` disables it. |
 | `persistence.enabled` | `true` | Without it the history dies with the pod. |
 | `persistence.storageClass` | `longhorn` | Set explicitly — the cluster has more than one class marked default. |
