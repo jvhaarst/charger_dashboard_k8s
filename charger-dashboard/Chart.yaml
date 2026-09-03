@@ -5,7 +5,7 @@ type: application
 version: 0.1.0
 # Tracks the published ghcr.io/jvhaarst/charger_dashboard image tag.
 # Renovate bumps this automatically when a new image is released.
-appVersion: "0.1.8"
+appVersion: "0.1.9"
 keywords:
   - ev
   - charging
