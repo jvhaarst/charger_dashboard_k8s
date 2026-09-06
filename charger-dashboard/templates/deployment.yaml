@@ -65,10 +65,14 @@ spec:
             {{- end }}
           readinessProbe:
             httpGet:
-              # Readiness reads the history database, so it fails while the
-              # volume is stalled — dropping out of the Service is the right
-              # response to storage that is genuinely not answering.
-              path: /healthz
+              # Also /livez, not /healthz. /healthz always answers 200 and puts
+              # any problem in the body, so a probe on it has exactly one failure
+              # mode: timeout. Since it reads the history database, that means it
+              # can only ever fire when storage is slow — and with a single
+              # replica there is nowhere to shift traffic to, so firing turns a
+              # brief longhorn stall into a 503. Readiness here only gates
+              # traffic during startup, which /livez does without touching disk.
+              path: /livez
               port: http
             initialDelaySeconds: 5
             periodSeconds: 15

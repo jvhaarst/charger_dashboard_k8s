@@ -69,11 +69,15 @@ helm upgrade --install laadpaal charger-dashboard/charger-dashboard \
   would deadlock waiting for the old pod to release it.
 - **The PVC is annotated `helm.sh/resource-policy: keep`**, so uninstalling the
   release does not delete accumulated history.
-- **Liveness hits `/livez`, readiness hits `/healthz`.** `/healthz` reads the
-  history database; `/livez` touches nothing. Pointing liveness at storage
-  turned a longhorn stall into a restart loop — 18 kills in four hours, exit
-  code 0, nothing in the app's own logs. Readiness may still fail during a
-  stall, which correctly takes the pod out of the Service without killing it.
+- **Both probes hit `/livez`**, which touches no disk and no network.
+  `/healthz` reads the history database and is for humans and monitoring, not
+  for probes. Pointing *liveness* at it turned a longhorn stall into a restart
+  loop — 18 kills in four hours, exit code 0, nothing in the app's own logs.
+  Pointing *readiness* at it was no better: `/healthz` always answers 200 and
+  reports problems in the body, so the probe's only failure mode is timeout,
+  which means it can only fire when storage is slow. With `replicaCount: 1`
+  there is nowhere to shift traffic, so firing produced a 503 instead of
+  preventing one.
 - **Probe budgets are deliberately generous** (`probes.timeoutSeconds: 5`,
   `probes.failureThreshold: 5`): a 4KiB fsync on this hardware has been seen
   taking 14 seconds mid-rebuild.
