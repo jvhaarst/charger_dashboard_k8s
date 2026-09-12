@@ -1,0 +1,26 @@
+name: Lint Helm Chart
+
+on:
+  pull_request:
+    paths:
+      - 'charger-dashboard/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+
+      - name: Lint chart
+        run: helm lint charger-dashboard
+
+      - name: Render templates
+        run: helm template laadpaal charger-dashboard

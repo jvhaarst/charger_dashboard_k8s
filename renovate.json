@@ -6,7 +6,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^charger-dashboard/Chart\\.yaml$"],
+      "fileMatch": [
+        "^charger-dashboard/Chart\\.yaml$"
+      ],
       "matchStrings": [
         "appVersion:\\s*\"(?<currentValue>v?[\\d.]+)\""
       ],
@@ -16,7 +18,20 @@
   ],
   "packageRules": [
     {
-      "matchDepNames": ["ghcr.io/jvhaarst/charger_dashboard"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "matchDepNames": [
+        "ghcr.io/jvhaarst/charger_dashboard"
+      ],
       "groupName": "charger_dashboard image"
     }
   ]
