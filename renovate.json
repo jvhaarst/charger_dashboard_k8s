@@ -10,10 +10,12 @@
         "^charger-dashboard/Chart\\.yaml$"
       ],
       "matchStrings": [
-        "appVersion:\\s*\"(?<currentValue>v?[\\d.]+)\""
+        "appVersion:\\s*\"(?<currentValue>v?[\\d.]+)\"",
+        "imageDigest:\\s*\"(?<currentDigest>sha256:[a-f0-9]{64})\""
       ],
       "depNameTemplate": "ghcr.io/jvhaarst/charger_dashboard",
-      "datasourceTemplate": "docker"
+      "datasourceTemplate": "docker",
+      "matchStringsStrategy": "combination"
     }
   ],
   "packageRules": [

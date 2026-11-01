@@ -28,6 +28,28 @@ history — which is why this chart has a volume and zeildashboard's does not.
 - `renovate.json` watches the `ghcr.io/jvhaarst/charger_dashboard` tag in
   `charger-dashboard/Chart.yaml` (`appVersion`) via the Docker datasource and
   opens a PR when a newer image is published.
+- It also watches the image's **digest**, held in the `imageDigest` chart
+  annotation beside `appVersion`. Renovate compares strings, so without a digest
+  a tag rebuilt in place — same `0.1.38`, new layers — produces no pull request
+  at all and the cluster keeps running the old image. Both captures live in one
+  `customManagers` entry with `matchStringsStrategy: combination`, which is what
+  makes them one dependency rather than two.
+
+  The digest sits in Chart.yaml rather than `values.yaml` because `appVersion` is
+  the single source of truth for the tag and a regex manager cannot capture a
+  version and its digest across two files. Renovate's own helm-values manager has
+  no digest key at all, so this is the only mechanism available to a chart.
+
+  To resolve a digest by hand, hash the manifest **index** — a platform manifest
+  would break the arm64 nodes:
+
+  ```bash
+  skopeo inspect --raw docker://ghcr.io/jvhaarst/charger_dashboard:0.1.38 | shasum -a 256
+  ```
+
+  Expect one corrective digest pull request shortly after a hand-written pin:
+  Renovate serves digests from its own datasource cache and may disagree with the
+  registry for a while. Let it own the field rather than editing it back.
 - Merging to `main` (or any change under `charger-dashboard/`) triggers
   `.github/workflows/helm-release.yaml`, which packages the chart (version
   auto-set to `<base>.<run_number>`) and publishes it + an updated `index.yaml`
@@ -50,6 +72,7 @@ helm upgrade --install laadpaal charger-dashboard/charger-dashboard \
 |-------|---------|-------|
 | `image.repository` | `ghcr.io/jvhaarst/charger_dashboard` | |
 | `image.tag` | `""` | Empty → uses the chart `appVersion` (Renovate-managed). |
+| `image.digest` | `""` | Empty → uses the `imageDigest` chart annotation (Renovate-managed). `none` deploys by tag alone. **If you override `tag`, set this too**: a digest beats a tag at pull time, so `<your tag>@<annotation digest>` quietly runs the appVersion image. |
 | `ingress.host` | `laadpaal.vanhaarst.net` | Needs a public DNS record for Let's Encrypt. |
 | `ingress.clusterIssuer` | `letsencrypt-production` | cert-manager ClusterIssuer. |
 | `config.bbox` | Business & Science Park | `minLon,minLat,maxLon,maxLat`; the API caps a box at 1.0 degree². |

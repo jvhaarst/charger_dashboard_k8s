@@ -26,7 +26,20 @@ app.kubernetes.io/name: {{ include "charger-dashboard.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
-{{/* Image reference: values.image.tag overrides, else the chart appVersion. */}}
+{{/*
+Image reference: values.image.tag overrides, else the chart appVersion.
+
+The digest is appended when known, so a tag rebuilt in place still pulls the
+right layers. It comes from the `imageDigest` chart annotation, which Renovate
+keeps in step with appVersion. `image.digest` in values.yaml overrides it.
+
+Note an empty `image.digest` means "fall back to the annotation", not "no
+digest" -- `default` cannot tell those apart. To deploy by tag alone, set
+`image.digest: none`.
+*/}}
 {{- define "charger-dashboard.image" -}}
-{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- $ref := printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- $digest := .Values.image.digest | default (.Chart.Annotations).imageDigest -}}
+{{- if and $digest (ne $digest "none") }}{{- $ref = printf "%s@%s" $ref $digest -}}{{- end -}}
+{{- $ref -}}
 {{- end -}}
