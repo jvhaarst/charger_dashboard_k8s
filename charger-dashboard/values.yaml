@@ -5,6 +5,18 @@ image:
   # Empty = use the chart's appVersion (the single source of truth Renovate bumps).
   # Set this only to pin/override a specific tag.
   tag: ""
+  # Empty = use the `imageDigest` chart annotation, which Renovate keeps in step
+  # with appVersion. Set a sha256:... here to override it for a local test.
+  #
+  # Empty means "fall back to the annotation", not "no digest". To deploy by tag
+  # alone -- and accept that a rebuilt tag becomes invisible again -- set this to
+  # the literal `none`.
+  #
+  # If you override `tag` above, set `digest` as well, to a matching digest or to
+  # `none`. Otherwise the reference becomes <your tag>@<the annotation's digest>,
+  # and a digest wins over a tag at pull time: the container runtime would quietly
+  # run the appVersion image while the manifest claims your tag.
+  digest: ""
   pullPolicy: IfNotPresent
 
 # One replica, always. The poller thread and the SQLite writer want a single

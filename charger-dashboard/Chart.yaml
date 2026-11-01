@@ -18,3 +18,14 @@ sources:
   - https://github.com/jvhaarst/charger_dashboard_k8s
 maintainers:
   - name: jvhaarst
+
+# The digest of the image `appVersion` names, so a tag rebuilt in place is still
+# visible. Renovate compares strings: without this, pushing a new 0.1.38 produces
+# no pull request at all and the cluster keeps the old layers.
+#
+# It lives here rather than in values.yaml because `appVersion` is the single
+# source of truth for the tag, and Renovate's regex manager can only capture a
+# version and its digest as one dependency from one file. The deployment appends
+# it, and `image.digest` in values.yaml overrides it for a local test.
+annotations:
+  imageDigest: "sha256:c1c97d1d03e54dcc773a8b654627015d79be36c1e4ffcad85d0d571fe64b7294"
